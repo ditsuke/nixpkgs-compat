@@ -44,9 +44,9 @@
 } @ args:
 
 let
-  version = "2.40";
-  patchSuffix = "-36";
-  sha256 = "sha256-GaiQF16SY9dI9ieZPeb0sa+c0h4D8IDkv7Oh+sECBaI=";
+  version = "2.35";
+  patchSuffix = "-351";
+  sha256 = "sha256-USNzL2tnzNMZMF79OZlx1YWSEivMKmUYob0lEN0M9S4=";
 in
 
 assert withLinuxHeaders -> linuxHeaders != null;
@@ -62,17 +62,16 @@ stdenv.mkDerivation ({
     [
       /* No tarballs for stable upstream branch, only https://sourceware.org/git/glibc.git and using git would complicate bootstrapping.
           $ git fetch --all -p && git checkout origin/release/2.39/master && git describe
-          glibc-2.40-36-g7073164add
-          $ git show --minimal --reverse glibc-2.40.. ':!ADVISORIES' > 2.40-master.patch
+          glibc-2.35-350-g37214df5f1
+          $ git show --minimal --reverse glibc-2.35.. > 2.35-master.patch
 
          To compare the archive contents zdiff can be used.
-          $ diff -u 2.40-master.patch ../nixpkgs/pkgs/development/libraries/glibc/2.40-master.patch
-
-         Please note that each commit has changes to the file ADVISORIES excluded since
-         that conflicts with the directory advisories/ making cross-builds from
-         hosts with case-insensitive file-systems impossible.
+          $ zdiff -u 2.35-master.patch.gz ../nixpkgs/pkgs/development/libraries/glibc/2.35-master.patch.gz
        */
-      ./2.40-master.patch
+      ./2.35-master.patch.gz
+
+      # From https://sourceware.org/git/glibc.git rev=f66780b
+      ./glibc-2.35-fix-build-gcc-13.patch
 
       /* Allow NixOS and Nix to handle the locale-archive. */
       ./nix-locale-archive.patch
@@ -93,15 +92,19 @@ stdenv.mkDerivation ({
       /* https://github.com/NixOS/nixpkgs/pull/137601 */
       ./nix-nss-open-files.patch
 
-      ./0001-Revert-Remove-all-usage-of-BASH-or-BASH-in-installed.patch
+      # Patch differs between for glibc 2.40 and 2.35, so we use the 2.35 version
+      #./0001-Revert-Remove-all-usage-of-BASH-or-BASH-in-installed.patch
+      ./glibc-2.35-Revert-Remove-all-usage-of-BASH-or-BASH-in-installed.patch
 
       /* Patch derived from archlinux,
          https://gitlab.archlinux.org/archlinux/packaging/packages/glibc/-/blob/e54d98e2d1aae4930ecad9404ef12234922d9dfd/reenable_DT_HASH.patch
 
          See also https://github.com/ValveSoftware/Proton/issues/6051
          & https://github.com/NixOS/nixpkgs/pull/188492#issuecomment-1233802991
+
+        DISABLED: Not required for glibc-2.35
       */
-      ./reenable_DT_HASH.patch
+      #./reenable_DT_HASH.patch
     ]
     /* NVCC does not support ARM intrinsics. Since <math.h> is pulled in by almost
        every HPC piece of software, without this patch CUDA compilation on ARM
@@ -117,7 +120,8 @@ stdenv.mkDerivation ({
     )
     ++ lib.optional stdenv.hostPlatform.isMusl ./fix-rpc-types-musl-conflicts.patch
     ++ lib.optional stdenv.buildPlatform.isDarwin ./darwin-cross-build.patch
-    ++ lib.optional enableCETRuntimeDefault ./2.39-revert-cet-default-disable.patch;
+    ++ lib.optional enableCETRuntimeDefault ./2.39-revert-cet-default-disable.patch
+    ;
 
   postPatch =
     ''
