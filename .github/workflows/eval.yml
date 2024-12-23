@@ -53,7 +53,7 @@ jobs:
           echo "systems=$(<result/systems.json)" >> "$GITHUB_OUTPUT"
 
       - name: Upload the list of all attributes
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         if: steps.merged.outputs.mergedSha
         with:
           name: paths
@@ -95,7 +95,7 @@ jobs:
           # If it uses too much memory, slightly decrease chunkSize
 
       - name: Upload the output paths and eval stats
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         if: needs.attrs.outputs.mergedSha
         with:
           name: intermediate-${{ matrix.system }}
@@ -127,7 +127,7 @@ jobs:
             --arg resultsDir ./intermediate
 
       - name: Upload the combined results
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b # v4.5.0
         with:
           name: result
           path: result/*
